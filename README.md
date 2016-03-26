@@ -49,3 +49,51 @@ select to_json (array[1,2]);
 build array
 ```
 select json_build_array (1,3,4);
+```
+
+build object from array, must contain even numbers of elements
+```
+select json_build_object (1,3,4,5); 
+```
+will return
+```
+{"1" : 3, "4" : 5}
+```
+
+json_object func (syntax is strange)
+```
+select json_object ('{k1,k2}','{v1,v2}');
+```
+return
+```
+{"k1" : "v1", "k2" : "v2"}
+```
+
+or:
+```
+select json_object ('{k1,v1, k2,v2}');
+```
+return
+```
+{"k1" : "v1", "k2" : "v2"}
+```
+
+
+Nested subquery
+```
+select row_to_json(x) from (select *, (select json_agg(a) from (select....)a) as alias from tbname)x;
+```
+######JSON process func
+```
+select *, jsonb_object_keys(body) from tbname
+```
+json.key, json.value
+```
+select json.key json.value from artist_docs, jsonb_each(tbname.body) json
+select json.key json.value from artist_docs, json_each(tbname.body::json) json     //same as above
+```
+
+jsonb_to_record
+```
+select j.* from tbname, jsonb_to_record(tbname.body) as j ( id int,name varchar(255))
+```
