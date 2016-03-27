@@ -164,3 +164,23 @@ create table doc{
 create idx on doc using GIN(body jsonb_path_ops)
 create idx_s on doc using GIN(search)
 ```
+######2
+```
+create function createx (name varchar, out boolean)
+as $$
+var sql= "create table " + name +"("+
+  "id serial primary key,"+
+  "body jsonb not null,"+
+  "search tsvector,"+
+  "created_at timestemptz default now() not null,"+
+  "updated_at timestemptz default now() not null);"
+
+plv8.exexute(sql);
+
+plv8.execute("create idx"+name+" on "+name+" using GIN(body jsonb_path_ops)")
+plv8.execute("create idx_"+name+"s on "+name+" using GIN(search)")
+return true;
+$$ language plv8;
+
+select createx('ke')
+```
