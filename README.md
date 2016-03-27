@@ -149,3 +149,18 @@ review
 ```
 row_to_json json_agg jsonb_to_record jsonb_array_elements
 ```
+
+#####3 Document API
+######1 Document table
+```
+create table doc{
+  id serial primary key,
+  body jsonb not null,
+  search tsvector,
+  created_at timestemptz default now() not null,
+  updated_at timestemptz default now() not null
+}
+
+create idx on doc using GIN(body jsonb_path_ops)
+create idx_s on doc using GIN(search)
+```
