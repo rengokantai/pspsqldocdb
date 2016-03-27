@@ -78,6 +78,8 @@ return
 {"k1" : "v1", "k2" : "v2"}
 ```
 
+(from now, tbname contains two fields, id and body)  
+
 
 Nested subquery
 ```
@@ -93,7 +95,57 @@ select json.key json.value from artist_docs, jsonb_each(tbname.body) json
 select json.key json.value from artist_docs, json_each(tbname.body::json) json     //same as above
 ```
 
-jsonb_to_record
+jsonb_to_record 
 ```
 select j.* from tbname, jsonb_to_record(tbname.body) as j ( id int,name varchar(255))
+```
+######Existence operator
+```
+select * from tbname where body -> 'field'?'name'
+```
+######containment operator
+```
+select * from tbname where body @> '{"name":"value"}'
+select * from tbname where body -> "name" @> '{"value"}'
+```
+######fuzzy
+```
+select * from tbname where body ->> 'name' LIKE '%x";
+select * from tbname where (body ->> 'id')::int > 100;
+```
+
+######indexing
+
+create index
+```
+create index idx_name on tbname using GIN(fname)
+```
+
+```
+select pg_size_pretty(pg_relation_size('idx_name'::regclass)) as alias
+```
+prepare a index for jsonb
+```
+create index idx_name on tbname using GIN(fname jsonb_path_ops)
+```
+index for specific field
+```
+create index idx_name on tbname using GIN((fname -> 'name') jsonb_path_ops)
+```
+
+######plv8
+```
+create function json(out res varchar){
+  as $$
+   var cus = {"name":"ke"};
+   var sql = "insert into cus(body) values($1) returning *;";
+   var new = plv8.execute(sql,JSON.stringify(cus));
+   return new[0].id
+  $$ languare plv8;
+-- call the function
+select json()
+```
+review
+```
+row_to_json json_agg jsonb_to_record jsonb_array_elements
 ```
